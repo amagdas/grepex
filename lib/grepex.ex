@@ -3,6 +3,13 @@ defmodule Grepex do
   Documentation for Grepex.
   """
 
+  @ixquick_url "https://www.ixquick.eu/do/search/"
+  @ixquick_headers [
+    {"Content-Type", "application/x-www-form-urlencoded"},
+    {"User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0"},
+    {"Accept", "tex/html"}
+  ]
+
   @doc """
   ## ./grepex search_term
   """
@@ -27,6 +34,19 @@ defmodule Grepex do
 
   defp process({search_term}) do
     IO.inspect search_term
+    {search_term} |> search
+  end
+
+  defp search({search_term}) do
+    body = ixquick_body(search_term)
+    case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
+      { :ok, response } -> IO.inspect response
+      { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
+    end
+  end
+
+  defp ixquick_body(search_term) do
+    {:form, [key: "search_term"]}
   end
 
 end
