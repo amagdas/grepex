@@ -23,8 +23,8 @@ defmodule Grepex do
     parse = OptionParser.parse(args)
     case parse do
       { _, [], _ } -> :help
-      { _, [search_term], _ }
-       -> {search_term}
+      { _, terms, _ }
+       -> {terms}
     end
   end
 
@@ -32,21 +32,29 @@ defmodule Grepex do
     IO.puts "Usage: ./grepex search-term"
   end
 
-  defp process({search_term}) do
-    IO.inspect search_term
-    {search_term} |> search
+  defp process({terms}) do
+    IO.inspect terms
+    {terms} |> search
   end
 
-  defp search({search_term}) do
-    body = ixquick_body(search_term)
+  defp search({terms}) do
+    body = terms
+           |> prepare_search_term
+           |> ixquick_body
+
     case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
       { :ok, response } -> IO.inspect response
       { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
     end
   end
 
+  def prepare_search_term(terms) do
+    not_empty = Enum.filter(terms, (fn x -> String.length(x) > 0 end))
+    Enum.join(not_empty, "+")
+  end
+
   defp ixquick_body(search_term) do
-    {:form, [key: "search_term"]}
+    {:form, [query: search_term]}
   end
 
 end
