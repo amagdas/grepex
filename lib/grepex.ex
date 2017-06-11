@@ -1,4 +1,5 @@
 defmodule Grepex do
+
   @moduledoc """
   Documentation for Grepex.
   """
@@ -37,18 +38,55 @@ defmodule Grepex do
     {terms} |> search
   end
 
-  defp search({terms}) do
+  def search({terms}) do
     body = terms
            |> prepare_search_term
            |> ixquick_body
 
     case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
-      { :ok, response } -> IO.inspect response
+      { :ok, %HTTPoison.Response{body: response} } ->
+        response
       { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
     end
   end
 
-  def prepare_search_term(terms) do
+  def parse_html(html) do
+    html
+    |> Floki.find("div.result")
+    |> parse_headings
+    |> parse_urls
+    |> parse_descriptions
+    |> beautify_result
+  end
+
+  def parse_headings(search_results) do
+    headings = search_results
+               |> Floki.find("span.result_url_heading")
+               |> Enum.map(fn x -> parse_element(x) end)
+    {search_results, %{headings: headings}}
+  end
+
+  def parse_urls({search_results, result}) do
+    urls = search_results
+           |> Floki.find("span.url")
+           |> Enum.map(fn x -> parse_element(x) end)
+    {search_results, Map.put(result, :urls, urls)}
+  end
+
+  def parse_descriptions({search_results, result}) do
+    descriptions = search_results
+                   |> Floki.find("p.desc")
+                   |> Enum.map(fn x -> parse_element(x) end)
+    {search_results, Map.put(result, :descriptions, descriptions)}
+  end
+  def beautify_result({_, %{headings: headings, urls: urls, descriptions: descriptions}}) do
+    Enum.zip([headings, urls, descriptions])
+  end
+
+  defp parse_element({_, _, []}), do: ""
+  defp parse_element({_, _, [value]}), do: value
+
+  defp prepare_search_term(terms) do
     not_empty = Enum.filter(terms, (fn x -> String.length(x) > 0 end))
     Enum.join(not_empty, "+")
   end
