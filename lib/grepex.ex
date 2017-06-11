@@ -44,47 +44,26 @@ defmodule Grepex do
            |> ixquick_body
 
     case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
-      { :ok, %HTTPoison.Response{body: response} } ->
-        response
+      { :ok, %HTTPoison.Response{body: response} } -> parse_html(response)
       { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
     end
   end
 
   def parse_html(html) do
-    html
-    |> Floki.find("div.result")
-    |> parse_headings
-    |> parse_urls
-    |> parse_descriptions
-    |> beautify_result
+    for n <- [1 .. 10], do: n
+    |> Enum.map(fn id -> Floki.find(html, "#result#{id}") |> parse_result(id) end)
   end
 
-  def parse_headings(search_results) do
-    headings = search_results
-               |> Floki.find("span.result_url_heading")
-               |> Enum.map(fn x -> parse_element(x) end)
-    {search_results, %{headings: headings}}
+  def parse_result(result, idx) do
+    heading = Floki.find(result, "span.result_url_heading") |> parse_element
+    url = Floki.find(result, "span.url") |> parse_element
+    description = Floki.find(result, "p.desc") |> parse_element
+    {idx, heading, url, description}
   end
 
-  def parse_urls({search_results, result}) do
-    urls = search_results
-           |> Floki.find("span.url")
-           |> Enum.map(fn x -> parse_element(x) end)
-    {search_results, Map.put(result, :urls, urls)}
-  end
-
-  def parse_descriptions({search_results, result}) do
-    descriptions = search_results
-                   |> Floki.find("p.desc")
-                   |> Enum.map(fn x -> parse_element(x) end)
-    {search_results, Map.put(result, :descriptions, descriptions)}
-  end
-  def beautify_result({_, %{headings: headings, urls: urls, descriptions: descriptions}}) do
-    Enum.zip([headings, urls, descriptions])
-  end
-
-  defp parse_element({_, _, []}), do: ""
-  defp parse_element({_, _, [value]}), do: value
+  defp parse_element([]), do: ""
+  defp parse_element([{_, _, []}]), do: ""
+  defp parse_element([{_, _, [value]}]), do: value
 
   defp prepare_search_term(terms) do
     not_empty = Enum.filter(terms, (fn x -> String.length(x) > 0 end))
