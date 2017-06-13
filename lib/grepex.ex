@@ -29,7 +29,28 @@ defmodule Grepex do
 
   defp process({terms}) do
     IO.inspect terms
-    {terms} |> Search.search
+    {terms}
+    |> Search.search
+    |> render_results
+  end
+
+  defp render_results([results]) do
+    results
+    |> Enum.each(fn result -> render_result(result) end)
+  end
+
+  defp render_result({idx, heading, url, description}) do
+    [:red, :bright, "[#{idx}] #{url}"]
+    |> IO.ANSI.format
+    |> IO.puts
+
+    [:green, heading]
+    |> IO.ANSI.format
+    |> IO.puts
+
+    [:gray, description]
+    |> IO.ANSI.format
+    |> IO.puts
   end
 
 end

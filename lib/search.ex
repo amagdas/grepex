@@ -14,7 +14,7 @@ defmodule Grepex.Search do
            |> ixquick_body
 
     case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
-      { :ok, %HTTPoison.Response{body: response} } -> Parser.parse_html(response) |> IO.inspect
+      { :ok, %HTTPoison.Response{body: response} } -> Parser.parse_html(response)
       { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
     end
   end
@@ -22,5 +22,4 @@ defmodule Grepex.Search do
   defp ixquick_body(search_term) do
     {:form, [query: search_term]}
   end
-
 end
