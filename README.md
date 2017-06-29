@@ -9,3 +9,6 @@ Goals:
 - learn elixir
 - have fun
 - play with CLI apps
+
+To build:
+`mix do deps.get, compile && mix escript.build`
