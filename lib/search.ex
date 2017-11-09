@@ -12,10 +12,19 @@ defmodule Grepex.Search do
     body = terms
            |> Enum.join("+")
            |> ixquick_body
+    t1 = NaiveDateTime.utc_now
 
     case HTTPoison.post(@ixquick_url, body, @ixquick_headers) do
-      { :ok, %HTTPoison.Response{body: response} } -> Parser.parse_html(response)
-      { :error, %HTTPoison.Error{reason: reason} } -> IO.inspect reason
+      { :ok, %HTTPoison.Response{body: response} } ->
+        results = Parser.parse_html(response)
+        t2 = NaiveDateTime.utc_now
+        IO.puts "search took: #{NaiveDateTime.diff(t2, t1)} seconds"
+        results
+      { :error, %HTTPoison.Error{reason: reason} } ->
+        IO.inspect reason
+        t2 = NaiveDateTime.utc_now
+        IO.puts "search took: #{NaiveDateTime.diff(t2, t1)} seconds"
+        reason
     end
   end
 
