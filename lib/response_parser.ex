@@ -1,8 +1,9 @@
-defmodule Grepex.Parser do
+defmodule Grepex.ResponseParser do
 
   def parse_html(html) do
     for n <- [1 .. 10], do: n
-    |> Enum.map(fn id -> Floki.find(html, "#result#{id}") |> parse_result(id) end)
+    |> Enum.map(fn id -> Floki.find(html, "#result#{id}")
+                          |> parse_result(id) end)
   end
 
   def parse_result(result, idx) do

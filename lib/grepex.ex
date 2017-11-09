@@ -1,8 +1,10 @@
 defmodule Grepex do
-  alias Grepex.Search
+  alias Grepex.SearchServer
+  alias Grepex.IOHelpers
 
   @moduledoc """
-  Documentation for Grepex.
+  Command line tool for searching the web.
+  Currently uses private search providers: ixquick
   """
 
   @doc """
@@ -27,10 +29,17 @@ defmodule Grepex do
   end
 
   defp process({terms}) do
-    IO.inspect terms
-    {terms}
-    |> Search.search
-    |> Grepex.Renderer.render_results
+    {:ok, _pid} = SearchServer.run
+    terms
+    |> SearchServer.search
+
+    receive do
+      {:ixquick_result, results } -> Grepex.Renderer.render_results results
+    after
+      20_000 ->
+        IO.puts IOHelpers.bad_news_marker <> "Timeout: no results received in 20s" <> IOHelpers.bad_news_marker
+        :timeout
+    end
   end
 
 end
