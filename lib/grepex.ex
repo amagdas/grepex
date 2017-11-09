@@ -9,18 +9,26 @@ defmodule Grepex do
   ## ./grepex search_term
   """
   def main(args) do
-    args
+    t1 = NaiveDateTime.utc_now
+    res = args
     |> parse_args
     |> process
+    t2 = NaiveDateTime.utc_now
+    IO.puts "grepex took: #{NaiveDateTime.diff(t2, t1)} seconds"
+    res
   end
 
   defp parse_args(args) do
+    t1 = NaiveDateTime.utc_now
     parse = OptionParser.parse(args)
-    case parse do
+    res = case parse do
       { _, [], _ } -> :help
         { _, terms, _ }
         -> {terms}
     end
+    t2 = NaiveDateTime.utc_now
+    IO.puts "parse_args took: #{NaiveDateTime.diff(t2, t1)} seconds"
+    res
   end
 
   defp process(:help) do
@@ -29,9 +37,13 @@ defmodule Grepex do
 
   defp process({terms}) do
     IO.inspect terms
-    {terms}
-    |> Search.search
-    |> render_results
+    t1 = NaiveDateTime.utc_now
+    res = {terms}
+          |> Search.search
+          |> render_results
+    t2 = NaiveDateTime.utc_now
+    IO.puts "process took: #{NaiveDateTime.diff(t2, t1)} seconds"
+    res
   end
 
   defp render_results([results]) do
