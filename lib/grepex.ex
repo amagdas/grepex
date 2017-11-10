@@ -35,7 +35,7 @@ defmodule Grepex do
     wait_for_response
   end
 
-  defp wait_for_response do
+  def wait_for_response do
     receive do
       {:ixquick_result, results } -> Grepex.Renderer.render_results results
     after
@@ -43,7 +43,6 @@ defmodule Grepex do
         IO.puts IOHelpers.bad_news_marker() <> "Still waiting: no results received yet" <> IOHelpers.bad_news_marker()
         wait_for_response
     end
-
   end
 
 end
