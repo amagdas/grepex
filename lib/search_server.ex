@@ -10,8 +10,9 @@ defmodule Grepex.SearchServer do
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 
-  def search(terms) when is_list(terms) do
-    GenServer.cast(IxQuick, {:search, terms, self()})
+  def search(terms, from \\ self()) when is_list(terms) do
+    IO.puts "Searching for #{terms} sent by: #{inspect from}"
+    GenServer.cast(IxQuick, {:search, terms, from})
   end
 
 end
