@@ -7,8 +7,7 @@ defmodule Grepex.SearchServer do
     ]
 
     # Start the supervisor with our child
-    {:ok, pid} = Supervisor.start_link(children, strategy: :one_for_one)
-    {:ok, pid}
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 
   def search(terms) when is_list(terms) do

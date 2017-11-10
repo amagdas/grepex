@@ -16,7 +16,8 @@ defmodule Grepex.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger, :httpoison, :hackney, :floki]]
+    [mod: {Grepex.App, []},
+     extra_applications: [:logger, :httpoison, :hackney, :floki]]
   end
 
   # Dependencies can be Hex packages:

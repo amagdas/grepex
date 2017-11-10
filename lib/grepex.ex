@@ -29,7 +29,6 @@ defmodule Grepex do
   end
 
   defp process({terms}) do
-    {:ok, _pid} = SearchServer.run
     terms
     |> SearchServer.search
 
