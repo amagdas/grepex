@@ -24,13 +24,30 @@ defmodule Grepex do
     end
   end
 
-  defp process(:help) do
+  def process(:help) do
     IO.puts "Usage: ./grepex search-term"
   end
 
-  defp process({terms}) do
-    terms
-    |> SearchServer.search
+  def process({terms}) do
+    [term | _] = terms
+
+    first = :binary.first(term)
+
+    entry =
+      Enum.find(table(), fn {enum, _node} ->
+        first in enum
+      end) || no_entry_error(term)
+
+    IO.inspect entry
+    search_node = elem(entry, 1)
+
+    # If the entry node is the current node
+    if search_node == node() do
+      terms
+      |> SearchServer.search
+    else
+      GenServer.cast({IxQuick, search_node}, {:search, terms, self()})
+    end
 
     wait_for_response
   end
@@ -43,6 +60,14 @@ defmodule Grepex do
         IO.puts IOHelpers.bad_news_marker() <> "Still waiting: no results received yet" <> IOHelpers.bad_news_marker()
         wait_for_response
     end
+  end
+
+  defp table do
+    Application.fetch_env!(:grepex, :routing_table)
+  end
+
+  defp no_entry_error(term) do
+    raise "could not find entry for #{inspect term} in table #{inspect table()}"
   end
 
 end
