@@ -36,17 +36,24 @@ defmodule Grepex do
     entry =
       Enum.find(table(), fn {enum, _node} ->
         first in enum
-      end) || no_entry_error(term)
+      end)
 
     IO.inspect entry
     search_node = elem(entry, 1)
 
-    # If the entry node is the current node
-    if search_node == node() do
-      terms
-      |> SearchServer.search
-    else
-      GenServer.cast({IxQuick, search_node}, {:search, terms, self()})
+    case Enum.any?(Node.list(), fn node_name -> node_name == search_node end) do
+      true ->
+        # If the entry node is the current node
+        if search_node == node() do
+          terms
+          |> SearchServer.search
+        else
+          GenServer.cast({IxQuick, search_node}, {:search, terms, self()})
+        end
+      # node not found in the cluster, run it on the current node
+      false ->
+        terms
+        |> SearchServer.search
     end
 
     wait_for_response
@@ -64,10 +71,6 @@ defmodule Grepex do
 
   defp table do
     Application.fetch_env!(:grepex, :routing_table)
-  end
-
-  defp no_entry_error(term) do
-    raise "could not find entry for #{inspect term} in table #{inspect table()}"
   end
 
 end
