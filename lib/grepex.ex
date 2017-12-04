@@ -48,7 +48,7 @@ defmodule Grepex do
           terms
           |> SearchServer.search
         else
-          GenServer.cast({IxQuick, search_node}, {:search, terms, self()})
+          :rpc.call(:"#{search_node}", Grepex.SearchServer, :search, [terms, self()])
         end
       # node not found in the cluster, run it on the current node
       false ->
@@ -64,7 +64,7 @@ defmodule Grepex do
       {:ixquick_result, results } -> Grepex.Renderer.render_results results
     after
       1_000 ->
-        IO.puts IOHelpers.bad_news_marker() <> "Still waiting: no results received yet" <> IOHelpers.bad_news_marker()
+        IO.puts IOHelpers.bad_news_marker() <> " Still waiting: no results received yet " <> IOHelpers.bad_news_marker()
         wait_for_response
     end
   end

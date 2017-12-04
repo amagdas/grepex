@@ -1,18 +1,19 @@
 defmodule Grepex.SearchServer do
-  import Supervisor.Spec
+  use Supervisor
+  @name IxQuickSupervisor
 
   def run do
-    children = [
-      worker(Grepex.IxQuickSearch, [%{}, [name: IxQuick]])
-    ]
+    Supervisor.start_link(__MODULE__, :ok, name: @name)
+  end
 
-    # Start the supervisor with our child
-    Supervisor.start_link(children, strategy: :one_for_one)
+  def init(:ok) do
+    Supervisor.init([Grepex.IxQuickSearch], strategy: :simple_one_for_one)
   end
 
   def search(terms, from \\ self()) when is_list(terms) do
     IO.puts "Searching for #{terms} sent by: #{inspect from}"
-    GenServer.cast(IxQuick, {:search, terms, from})
+    {:ok, search_agent} = Supervisor.start_child(@name, [])
+    GenServer.cast(search_agent, {:search, terms, from})
   end
 
 end
